@@ -1,0 +1,247 @@
+---
+title: "HW9"
+author: "Sara Almohtasib"
+date: "2022-11-27"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 1 
+
+1. Short description. Null and Alternative hypothesis.
+
+Null hypothesis: There is no linear relationship between average total number of observed species and Area, elevation, distance from nearest island, distance from Santa, and area of nearest island 
+
+Alternative hypothesis: There is linear relationship between average total number of observed species and Area, elevation, distance from nearest island, distance from Santa, and area of nearest island 
+
+2. Graphs and summary of conclusion.
+
+```{r}
+library(Sleuth3)
+head(ex1220)
+help(ex1220)
+```
+- First model
+
+```{r}
+a1<- lm(Total~Area+Elev+DistNear+DistSc+AreaNear, ex1220)
+plot(a1, which = 2)
+summary(a1)
+```
+This data provide strong evidence that there is a linear relationship between elevation and area near variables and avg total number of observed species, the p-value < 0.05.
+
+This data provide strong evidence that there is no linear relationship between Area, DistNear , DistSc variables and avg total number of observed species, the p-value > 0.05.
+
+- Second model
+
+```{r}
+library(ggplot2)
+outlier <- rep(FALSE,dim(ex1220)[1])
+outlier[c(25,19,16)] <- TRUE
+outlier <- as.factor(outlier)
+ex1220 <- cbind(ex1220,outlier)
+qplot(x=Area,y=Total, data=ex1220, color=outlier)
+```
+```{r}
+new_ex1220 <- subset(ex1220, Total < 300)
+a2<- lm(Total~Area+Elev+DistNear+DistSc+AreaNear, new_ex1220)
+plot(a2, which = 2)
+summary(a2)
+```
+This data provide strong evidence that there is a linear relationship between area, elevation and area near variables and avg total number of observed species, the p-value < 0.05.
+
+This data provide strong evidence that there is no linear relationship between DistNear , DistSc variables and avg total number of observed species, the p-value > 0.05.
+
+- Third model
+
+```{r}
+a_model <- lm(Total~Area+Elev+DistNear+DistSc+AreaNear, ex1220)
+inter_model.1 <- lm(Total ~ 1, ex1220)
+n <- nrow(ex1220)
+# Setting trace to false so not all steps are printed 
+aic_backward_model <- step(a_model, direction="backward", trace=FALSE)
+aic_backward_model$coefficients
+```
+ Based on AIC model selection method, I will choose elevation and AreaNear variables in my new model.
+```{r}
+a3<- lm(Total~Elev+AreaNear, new_ex1220)
+summary(a3)
+```
+Model estimates that when elevation increase by 1 m, the avg total number of observed species will increase by .27, and when area of nearest island increase by 1 km^2 the the avg total number of observed species will decrease by .06.
+
+This data provide strong evidence that there is a linear relationship between elevation and AreaNear variables and avg total number of observed species, the p-value bor both < 0.05.
+
+3. Scope of inference. Population, if any, it can be applied to.
+
+We don't have information how the data was collected to infer to the population, and there might be other confounding variables that could effect the result.
+
+
+# Problem 2 
+
+1. Short description. Null and Alternative hypothesis.
+
+Null hypothesis: There is no linear relationship between Ftaps and dosage.
+
+Alternative hypothesis: There is a linear relationship between Ftaps and dosage.
+
+2. Graphs and summary of conclusion. 
+```{r}
+caffeine.1 <- read.csv("~/Library/CloudStorage/OneDrive-UniversityofKansas/Fall 2022/BSAN710 S/Exam1/caffeine-1.csv")
+caffeine.1
+head(caffeine.1)
+```
+```{r}
+with(caffeine.1, xtabs(~Dosage))
+hist(caffeine.1$FTaps)
+```
+```{r}
+caffeine.1$Dosage<- gsub('mg', '', caffeine.1$Dosage)
+caffeine.1$Dosage<- as.integer(caffeine.1$Dosage)
+dosageCat <- as.factor(caffeine.1$Dosage)
+caffeine.1 <- cbind(caffeine.1, dosageCat)
+
+class(caffeine.1$Dosage)
+class(caffeine.1$dosageCat)
+caffeine.1
+```
+```{r}
+f1<- lm(FTaps ~ Dosage, caffeine.1)
+caffeine.1
+plot(f1, which = 2)
+```
+
+```{r}
+f2<- lm(FTaps~ dosageCat, caffeine.1)
+dosagelevels<- c(0,100,200)
+preddata.c<- data.frame(dosageCat=as.factor(dosagelevels))
+catpreds1 <- predict(f2, preddata.c)
+```
+
+```{r}
+plot(FTaps ~ Dosage, caffeine.1)
+abline(f1)
+lines(dosagelevels, catpreds1,col="red")
+legend("topleft",c("Continous","Categorical"),
+lty=1,col=c("black","red"))
+```
+There is no difference between the two models, they are too close and we can use both. In my opnion I will choose the categorical model, because the change from 0-100 dosage not  bigger from the change from 100-200 dogsage.
+
+3. Scope of inference. Population, if any, it can be applied to.
+
+Since this was an randomized study. Inferences to a wider population should  be drawn from this results, but the data is based on only 10 people so it is too small.
+
+
+# Homework Problem 3 
+
+1. Short description. Null and Alternative hypothesis.
+
+Null hypothesis: There is no linear relationship between avg BAT/LH ratio and days after inoculation.
+
+Alternative hypothesis: There is linear relationship between avg BAT/LH ratio and days after inoculation.
+
+2. Graphs and summary of conclusions.
+
+```{r}
+help(ex1416)
+head(ex1416)
+```
+a. Consider the BAT/LH ratio and first determine whether a transformation is appropriate.Consider whether the response could be linear in days. 
+
+```{r}
+b1<- lm(log(BAT/LH)~DaysPost, ex1416)
+plot(b1, which = 2)
+plot(log(BAT/LH)~DaysPost, ex1416)
+abline(b1)
+summary(b1)
+```
+Fisrt I used the log transformation method for BAT/LH ratio to make the data more normally distributed.
+
+The model estimated that the avg log BAT/LH ratio will decrease .042 when days after inculation increase by 1.
+
+This data provide strong evidence that there is no linear relathionship between the avg log BAT/LH ratio and days after inculation, the p-value= .39.
+
+b. Summarize the evidence for main effects.
+```{r}
+b2<- lm(log(BAT/LH)~Agent+Treatment+Route+DaysPost, ex1416)
+summary(b2)
+```
+This data provide strong evidence that the treatment and route factors effect the avg log BAT/LH ratio.
+
+```{r}
+b3<- lm(log(BAT/LH)~Treatment*Route, ex1416)
+summary(b3)
+```
+This data provide strong evidence that there is no interaction effect between tratment and route variables, the p-value = .89.
+
+3. Scope of inference. Population, if any, it can be applied to.
+
+Since this was an observational study, there might be other confounding variables that could effect the result, and there are anly 36 observations. We cant infer the result to population.
+
+
+# Homework Problem 4
+
+Quoted from a 1999 New York Times article “Dr. Larry A. Kurdek, found that couples often began their unions with high levels of marital quality, but that it appeared to decrease twice: once rather steeply over the first four years and again after about seven. (The pattern of change was the same for both husbands and wives.)”. Do you think Dr. Kurdek would treat years married as a categorical or quantitative variable when modeling marital happiness? Explain.
+
+In my opnion, Dr. Kurdek should treat years of married as a categorical variable, because the change was the same for both husbands and wives nit one bigger than the other. 
+
+
+# Homework Problem 5 
+
+1. Short description. Null and Alternative hypothesis.
+
+Null hypothesis: There is no linear relationship between average house sale price and Lot area, Bedroom AbvGr, Bsmt Full Bath, Bsmt Half Bath,Full Bath and Half Bath variables.
+
+Alternative hypothesis: There is linear relationship between average house sale price and Lot area, Bedroom AbvGr, Bsmt Full Bath, Bsmt Half Bath,Full Bath and Half Bath variables.
+
+2. Graphs and summary of conclusion.
+
+```{r}
+library(AmesHousing)
+amesData <- make_ames()
+```
+
+Using the Ames Housing data from the AmesHousing R package determine the best model for the price of a house. Limit your predictors to Lot_area, Bedroom_AbvGr, Bsmt_Full_Bath, Bsmt_Half_Bath,Full_Bath and Half_Bath.
+
+```{r}
+model.h <- lm(Sale_Price ~ Lot_Area+Bedroom_AbvGr+Bsmt_Full_Bath+Bsmt_Half_Bath+Full_Bath+Half_Bath, amesData)
+plot(model.h, which = 2)
+plot(model.h, which = 1)
+pricelog<- log(amesData$Sale_Price, 10)
+amesData <- cbind(amesData, pricelog)
+h_model <- lm(pricelog ~ Lot_Area+Bedroom_AbvGr+Bsmt_Full_Bath+Bsmt_Half_Bath+Full_Bath+Half_Bath, amesData)
+inter_model <- lm(pricelog ~ 1, amesData)
+plot(h_model, which = 2)
+```
+
+
+```{r}
+n <- nrow(amesData)
+# Setting trace to false so not all steps are printed 
+aic_backward_model <- step(h_model, direction="backward", trace=FALSE)
+aic_backward_model$coefficients
+bic_backward_model <- step(h_model, direction="backward", trace=FALSE, k=log(n))
+bic_backward_model$coefficients
+```
+
+Based on AIC and BIC model selection they selected the same coefficients. 
+
+```{r}
+summary(h_model)
+```
+
+This data provide strong evidence that all the variable selected are effect the avg log price, the p-value < 0.05.
+```{r}
+confint(h_model)
+```
+
+3. Scope of inference. Population, if any, it can be applied to.
+
+We don't have information how the data was collected to infer to the population, and there might be other confounding variables that could effect the result such as interest rate and inflation.
+
+
+## End of Assignment 9
+
+
